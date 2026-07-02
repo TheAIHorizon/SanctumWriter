@@ -2,8 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Import fonts */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+/* Fonts: local/system stack only - no remote imports (privacy: zero external requests on load).
+   'Inter' / 'JetBrains Mono' resolve to locally installed fonts if present, otherwise system fallbacks. */
 
 :root {
   --editor-bg: #0f172a;
@@ -25,7 +25,7 @@ html, body {
   padding: 0;
   height: 100%;
   overflow: hidden;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
   background-color: var(--editor-bg);
   color: var(--text-primary);
 }
@@ -52,7 +52,7 @@ html, body {
 /* CodeMirror overrides for dark theme */
 .cm-editor {
   height: 100%;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: ui-monospace, 'JetBrains Mono', Menlo, monospace;
   font-size: 14px;
   background-color: var(--editor-bg) !important;
 }

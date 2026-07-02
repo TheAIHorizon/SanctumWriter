@@ -1,20 +1,56 @@
 import { NextResponse } from 'next/server';
 import { readdir, stat, mkdir } from 'fs/promises';
-import { join, relative, isAbsolute } from 'path';
+import { join, relative, isAbsolute, resolve, sep } from 'path';
 import { existsSync } from 'fs';
+import { homedir } from 'os';
 
 const DEFAULT_WORKSPACE_PATH = process.env.WORKSPACE_PATH || './documents';
 
-function getWorkspacePath(customPath?: string): string {
-  if (customPath) {
-    // If it's an absolute path, use it directly
-    if (isAbsolute(customPath)) {
-      return customPath;
-    }
-    // Otherwise, resolve relative to cwd
-    return join(process.cwd(), customPath);
+// Error type for path confinement violations so handlers can return 400/403
+// instead of a generic 500.
+class PathAccessError extends Error {
+  status: number;
+  constructor(message: string, status: number) {
+    super(message);
+    this.status = status;
   }
-  return join(process.cwd(), DEFAULT_WORKSPACE_PATH);
+}
+
+function isWithin(parent: string, child: string): boolean {
+  return child === parent || child.startsWith(parent + sep);
+}
+
+// Security: reject any path containing a `..` segment (directory traversal).
+function hasTraversalSegment(value: string): boolean {
+  return value.split(/[\\/]+/).includes('..');
+}
+
+// Resolve the workspace root. Custom workspace values must not contain `..`
+// segments, and absolute workspaces must stay inside the user's home
+// directory or the app directory (the areas a vault can legitimately live in).
+function getWorkspacePath(customPath?: string): string {
+  const defaultRoot = resolve(process.cwd(), DEFAULT_WORKSPACE_PATH);
+  if (!customPath) {
+    return defaultRoot;
+  }
+  if (hasTraversalSegment(customPath)) {
+    throw new PathAccessError('Invalid workspace path', 400);
+  }
+  const resolved = isAbsolute(customPath)
+    ? resolve(customPath)
+    : resolve(process.cwd(), customPath);
+  const allowedRoots = [resolve(process.cwd()), resolve(homedir()), defaultRoot];
+  if (!allowedRoots.some((root) => isWithin(root, resolved))) {
+    throw new PathAccessError('Workspace path is outside the allowed area', 403);
+  }
+  return resolved;
+}
+
+function pathErrorResponse(error: unknown): NextResponse | null {
+  if (error instanceof PathAccessError) {
+    return NextResponse.json({ error: error.message }, { status: error.status });
+  }
+  return null;
 }
 
 interface FileNode {
@@ -79,6 +115,8 @@ export async function GET(request: Request) {
     
     return NextResponse.json({ files, workspacePath });
   } catch (error) {
+    const denied = pathErrorResponse(error);
+    if (denied) return denied;
     console.error('Error reading files:', error);
     return NextResponse.json(
       { error: 'Failed to read files' },
@@ -99,9 +137,29 @@ export async function POST(request: Request) {
     }
 
     const workspacePath = getWorkspacePath(workspace);
-    const targetPath = parentPath 
+
+    // Security: keep the new file/folder inside the workspace
+    if (
+      hasTraversalSegment(name) ||
+      isAbsolute(name) ||
+      (parentPath && (hasTraversalSegment(parentPath) || isAbsolute(parentPath)))
+    ) {
+      return NextResponse.json(
+        { error: 'Invalid path' },
+        { status: 400 }
+      );
+    }
+
+    const targetPath = parentPath
       ? join(workspacePath, parentPath, name)
       : join(workspacePath, name);
+
+    if (!isWithin(workspacePath, resolve(targetPath))) {
+      return NextResponse.json(
+        { error: 'Path is outside the workspace' },
+        { status: 403 }
+      );
+    }
 
     // Check if already exists
     if (existsSync(targetPath)) {
@@ -138,6 +196,8 @@ export async function POST(request: Request) {
       });
     }
   } catch (error) {
+    const denied = pathErrorResponse(error);
+    if (denied) return denied;
     console.error('Error creating:', error);
     return NextResponse.json(
       { error: 'Failed to create' },
