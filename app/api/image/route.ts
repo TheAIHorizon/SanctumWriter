@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { writeFile, mkdir } from 'fs/promises';
 import { join, isAbsolute } from 'path';
 import { existsSync } from 'fs';
+import { assertSafeExternalUrl, UnsafeUrlError } from '@/lib/security/ssrfGuard';
 
 const DEFAULT_COMFYUI_URL = 'http://127.0.0.1:8188';
 const DEFAULT_WORKSPACE_PATH = process.env.WORKSPACE_PATH || './documents';
@@ -59,11 +60,12 @@ export async function POST(request: Request) {
  */
 export async function PUT(request: Request) {
   try {
-    const { 
-      imageUrl, 
-      filename, 
+    const {
+      imageUrl,
+      filename,
       outputFolder = './images/generated',
-      workspace = DEFAULT_WORKSPACE_PATH 
+      workspace = DEFAULT_WORKSPACE_PATH,
+      comfyuiUrl = DEFAULT_COMFYUI_URL,
     } = await request.json();
 
     if (!imageUrl || !filename) {
@@ -71,6 +73,32 @@ export async function PUT(request: Request) {
         { error: 'imageUrl and filename are required' },
         { status: 400 }
       );
+    }
+
+    // SSRF guard: imageUrl is attacker-controllable (client-supplied JSON
+    // body). Only fetch it if it's a public http(s) address, OR it matches
+    // the user's configured ComfyUI origin (the one legitimate loopback
+    // target for this endpoint - ComfyUI is expected to run locally). This
+    // blocks redirecting the fetch to unrelated internal services (e.g.
+    // cloud metadata at 169.254.169.254, or another local port) while still
+    // allowing the normal "save the image ComfyUI just generated" flow.
+    let trustedComfyOrigin: string | null = null;
+    try {
+      trustedComfyOrigin = new URL(comfyuiUrl).origin;
+    } catch {
+      // Malformed comfyuiUrl - fall through with no trusted origin, so the
+      // generic private/loopback rejection below applies.
+    }
+
+    try {
+      await assertSafeExternalUrl(imageUrl, {
+        trustedOrigins: trustedComfyOrigin ? [trustedComfyOrigin] : [],
+      });
+    } catch (err) {
+      if (err instanceof UnsafeUrlError) {
+        return NextResponse.json({ error: err.message }, { status: 400 });
+      }
+      throw err;
     }
 
     // Fetch the image from ComfyUI

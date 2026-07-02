@@ -260,6 +260,7 @@ Enhanced prompt:`,
               filename: `${filenamePrefix}.png`,
               outputFolder: settings.outputFolder,
               workspace: workspacePath || './documents',
+              comfyuiUrl: settings.comfyuiUrl,
             }),
           });
 
