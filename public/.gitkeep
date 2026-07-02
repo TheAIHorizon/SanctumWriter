@@ -1,0 +1,6 @@
+Next.js's Docker build stage copies /app/public into the runner image
+(see Dockerfile: `COPY --from=builder /app/public ./public`). Git doesn't
+track empty directories, and this app currently ships no static assets
+(no favicon, etc.), so without this file the directory doesn't exist in
+the built image and the COPY step fails with "not found". Keep this
+placeholder until real assets are added here.
