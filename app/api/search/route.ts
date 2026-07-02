@@ -95,8 +95,8 @@ async function checkStatus(perplexicaUrl: string, searxngUrl: string) {
 
 // Perplexica provider/model configuration
 interface PerplexicaModelConfig {
-  chatModel: { provider: string; model: string } | null;
-  embeddingModel: { provider: string; model: string } | null;
+  chatModel: { provider: string; model: string };
+  embeddingModel: { provider: string; model: string };
 }
 
 // Fetch Perplexica's configured providers and models

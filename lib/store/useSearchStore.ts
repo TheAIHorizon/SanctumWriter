@@ -16,6 +16,7 @@ interface SearchState {
   isSearching: boolean;
   currentQuery: string;
   lastSearchQuery: string; // The query that was used for current results
+  lastUsedEngine: 'perplexica' | 'searxng' | null; // The concrete engine that produced current results
   results: SearchResult[];
   aiSummary: string | null;
   error: string | null;
@@ -75,10 +76,11 @@ export const useSearchStore = create<SearchState>()(
       isSearching: false,
       currentQuery: '',
       lastSearchQuery: '',
+      lastUsedEngine: null,
       results: [],
       aiSummary: null,
       error: null,
-      
+
       engineStatus: {
         perplexica: false,
         searxng: false,
@@ -101,6 +103,7 @@ export const useSearchStore = create<SearchState>()(
         aiSummary: response.aiSummary || null,
         error: response.error || null,
         lastSearchQuery: response.query || '', // Store the query used for these results
+        lastUsedEngine: response.searchEngine,
         isSearching: false,
       }),
       
@@ -162,6 +165,7 @@ export const useSearchStore = create<SearchState>()(
       clearSearch: () => set({
         currentQuery: '',
         lastSearchQuery: '',
+        lastUsedEngine: null,
         results: [],
         aiSummary: null,
         error: null,

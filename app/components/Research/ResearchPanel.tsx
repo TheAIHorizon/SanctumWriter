@@ -168,6 +168,7 @@ export function ResearchPanel() {
     setSearching,
     currentQuery,
     lastSearchQuery,
+    lastUsedEngine,
     setQuery,
     results,
     setResults,
@@ -277,7 +278,13 @@ export function ResearchPanel() {
       // Use lastSearchQuery to ensure we have the query that produced these results
       const queryToUse = lastSearchQuery || currentQuery;
       const markdown = formatResultsAsMarkdown(
-        { query: queryToUse, results, totalResults: results.length, searchEngine: preferredEngine, aiSummary },
+        {
+          query: queryToUse,
+          results,
+          totalResults: results.length,
+          searchEngine: lastUsedEngine || 'perplexica',
+          aiSummary,
+        },
         { includeAiSummary: true, maxResults: 100, includeUrls: true, includeQuery: true }
       );
       
