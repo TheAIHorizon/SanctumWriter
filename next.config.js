@@ -3,19 +3,9 @@ const nextConfig = {
   reactStrictMode: true,
   // Enable standalone output for Docker
   output: 'standalone',
-  // Allow connections to local LLM servers
-  async headers() {
-    return [
-      {
-        source: '/api/:path*',
-        headers: [
-          { key: 'Access-Control-Allow-Origin', value: '*' },
-          { key: 'Access-Control-Allow-Methods', value: 'GET, POST, PUT, DELETE, PATCH, OPTIONS' },
-          { key: 'Access-Control-Allow-Headers', value: 'Content-Type' },
-        ],
-      },
-    ];
-  },
+  // Note: no CORS headers are set for /api/* on purpose. The API is
+  // same-origin only; a wildcard Access-Control-Allow-Origin would let any
+  // website drive the local file APIs from the user's browser.
 };
 
 module.exports = nextConfig;

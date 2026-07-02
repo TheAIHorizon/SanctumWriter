@@ -71,6 +71,9 @@ USER nextjs
 EXPOSE 3125
 
 ENV PORT 3125
+# Binding 0.0.0.0 here is container-internal only; docker-compose publishes the
+# port on the host loopback (127.0.0.1:3125). To expose the app beyond this
+# machine, change the port mapping explicitly (e.g. -p 0.0.0.0:3125:3125).
 ENV HOSTNAME "0.0.0.0"
 
 # Default environment variables

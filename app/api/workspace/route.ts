@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { readdir, stat } from 'fs/promises';
-import { join, dirname, basename } from 'path';
+import { join, dirname, basename, resolve, sep } from 'path';
 import { existsSync } from 'fs';
 import { homedir } from 'os';
 
@@ -10,11 +10,39 @@ interface DirectoryEntry {
   type: 'file' | 'directory';
 }
 
+function isWithin(parent: string, child: string): boolean {
+  return child === parent || child.startsWith(parent + sep);
+}
+
+// Security: reject any path containing a `..` segment (directory traversal),
+// and confine browsing/validation to the user's home directory or the app
+// directory - the areas a vault can legitimately live in.
+function checkBrowsePath(rawPath: string): { ok: true; path: string } | { ok: false; status: number; error: string } {
+  if (rawPath.split(/[\\/]+/).includes('..')) {
+    return { ok: false, status: 400, error: 'Invalid path' };
+  }
+  const resolved = resolve(rawPath);
+  const allowedRoots = [resolve(homedir()), resolve(process.cwd())];
+  if (!allowedRoots.some((root) => isWithin(root, resolved))) {
+    return { ok: false, status: 403, error: 'Path is outside the allowed area' };
+  }
+  return { ok: true, path: resolved };
+}
+
 // Get list of directories for folder browser
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const path = searchParams.get('path') || homedir();
-  
+  const requestedPath = searchParams.get('path') || homedir();
+
+  const check = checkBrowsePath(requestedPath);
+  if (!check.ok) {
+    return NextResponse.json(
+      { error: check.error, path: requestedPath },
+      { status: check.status }
+    );
+  }
+  const path = check.path;
+
   try {
     // Validate path exists
     if (!existsSync(path)) {
@@ -64,7 +92,7 @@ export async function GET(request: Request) {
       currentPath: path,
       parentPath: dirname(path),
       entries,
-      canGoUp: path !== dirname(path), // Can't go up from root
+      canGoUp: path !== dirname(path) && checkBrowsePath(dirname(path)).ok, // Can't go up past the allowed root
     });
   } catch (error) {
     console.error('Error browsing directory:', error);
@@ -78,15 +106,24 @@ export async function GET(request: Request) {
 // Validate a workspace path
 export async function POST(request: Request) {
   try {
-    const { path } = await request.json();
-    
-    if (!path) {
+    const { path: rawPath } = await request.json();
+
+    if (!rawPath) {
       return NextResponse.json(
         { error: 'Path is required' },
         { status: 400 }
       );
     }
-    
+
+    const check = checkBrowsePath(rawPath);
+    if (!check.ok) {
+      return NextResponse.json(
+        { error: check.error, path: rawPath },
+        { status: check.status }
+      );
+    }
+    const path = check.path;
+
     // Check if path exists
     if (!existsSync(path)) {
       return NextResponse.json({

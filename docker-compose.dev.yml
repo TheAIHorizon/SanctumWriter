@@ -10,7 +10,9 @@ services:
       dockerfile: Dockerfile.dev
     container_name: sanctum-writer-dev
     ports:
-      - "3125:3125"
+      # Published on the host loopback only. To expose the dev server to other
+      # machines, change this mapping explicitly (e.g. "3125:3125").
+      - "127.0.0.1:3125:3125"
     volumes:
       # Mount source code for hot-reloading
       - .:/app
@@ -27,7 +29,8 @@ services:
       - DEFAULT_MODEL=llama3
     extra_hosts:
       - "host.docker.internal:host-gateway"
-    command: npm run dev
+    # Bind 0.0.0.0 inside the container (the port is only published on the host loopback above)
+    command: npm run dev -- -H 0.0.0.0
 
 
 

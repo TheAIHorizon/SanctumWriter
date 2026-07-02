@@ -23,9 +23,11 @@ RUN mkdir -p /app/documents
 EXPOSE 3125
 
 ENV PORT 3125
+# Container-internal binding only; publish the port on the host loopback
+# (see docker-compose.dev.yml: "127.0.0.1:3125:3125").
 ENV HOSTNAME "0.0.0.0"
 
-CMD ["npm", "run", "dev"]
+CMD ["npm", "run", "dev", "--", "-H", "0.0.0.0"]
 
 
 

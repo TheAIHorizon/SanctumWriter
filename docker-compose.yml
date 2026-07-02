@@ -15,7 +15,9 @@ services:
       dockerfile: Dockerfile
     container_name: sanctum-writer
     ports:
-      - "3125:3125"
+      # Published on the host loopback only. To expose SanctumWriter to other
+      # machines, change this mapping explicitly (e.g. "3125:3125").
+      - "127.0.0.1:3125:3125"
     volumes:
       # Mount your documents folder for persistence
       - ./documents:/app/documents
