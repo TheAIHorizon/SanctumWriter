@@ -13,8 +13,7 @@ import { Reviewer, ReviewComment } from '@/types/council';
 import { useCouncilStore } from '@/lib/store/useCouncilStore';
 import { useSettingsStore } from '@/lib/store/useSettingsStore';
 import { ensureModelLoaded, getLoadedModels, formatBytes } from '@/lib/llm/modelManager';
-
-const OLLAMA_URL = 'http://localhost:11434';
+import { getOllamaUrl } from '@/lib/llm/client';
 
 /**
  * Verify a claim using search (for Fact Checker integration)
@@ -303,7 +302,7 @@ export async function runReviewer(
   try {
     const prompt = buildReviewPrompt(reviewer, content, selection);
     
-    const response = await fetch(`${OLLAMA_URL}/api/generate`, {
+    const response = await fetch(`${getOllamaUrl()}/api/generate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -672,7 +671,7 @@ Respond in JSON format:
   "recommendedFocus": "what the user should work on first"
 }`;
 
-  const response = await fetch(`${OLLAMA_URL}/api/generate`, {
+  const response = await fetch(`${getOllamaUrl()}/api/generate`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({

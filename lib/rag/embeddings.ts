@@ -3,7 +3,7 @@
  * Generates embeddings using Ollama's embedding models
  */
 
-import { useSettingsStore } from '../store/useSettingsStore';
+import { useSettingsStore, DEFAULT_SERVICE_URLS } from '../store/useSettingsStore';
 
 // Default embedding model - nomic-embed-text is small and effective
 const DEFAULT_EMBEDDING_MODEL = 'nomic-embed-text';
@@ -22,7 +22,7 @@ export async function generateEmbedding(
   model: string = DEFAULT_EMBEDDING_MODEL
 ): Promise<EmbeddingResult> {
   const settings = useSettingsStore.getState();
-  const ollamaUrl = settings.serviceURLs?.ollama || 'http://localhost:11434';
+  const ollamaUrl = settings.serviceURLs?.ollama || DEFAULT_SERVICE_URLS.ollama;
 
   try {
     const response = await fetch(`${ollamaUrl}/api/embeddings`, {
@@ -77,7 +77,7 @@ export async function checkEmbeddingModel(
   model: string = DEFAULT_EMBEDDING_MODEL
 ): Promise<boolean> {
   const settings = useSettingsStore.getState();
-  const ollamaUrl = settings.serviceURLs?.ollama || 'http://localhost:11434';
+  const ollamaUrl = settings.serviceURLs?.ollama || DEFAULT_SERVICE_URLS.ollama;
 
   try {
     const response = await fetch(`${ollamaUrl}/api/tags`);
@@ -100,7 +100,7 @@ export async function pullEmbeddingModel(
   onProgress?: (status: string) => void
 ): Promise<boolean> {
   const settings = useSettingsStore.getState();
-  const ollamaUrl = settings.serviceURLs?.ollama || 'http://localhost:11434';
+  const ollamaUrl = settings.serviceURLs?.ollama || DEFAULT_SERVICE_URLS.ollama;
 
   try {
     onProgress?.(`Pulling ${model}...`);

@@ -8,6 +8,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { OLLAMA_URL as DEFAULT_OLLAMA_URL } from '@/lib/config/serverUrls';
 
 // Default URLs - can be overridden by env vars, headers, or request body
 const DEFAULT_PERPLEXICA_URL = 'http://localhost:3000';
@@ -520,9 +521,6 @@ async function searchSearXNGDirect(query: string, searxngUrl: string = DEFAULT_S
     searchEngine: 'searxng',
   }), { headers: { 'Content-Type': 'application/json' } });
 }
-
-// Default Ollama URL - can be overridden
-const DEFAULT_OLLAMA_URL = 'http://localhost:11434';
 
 // Generate AI summary of search results using Ollama
 async function generateSearchSummary(

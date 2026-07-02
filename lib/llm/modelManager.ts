@@ -9,8 +9,7 @@
  */
 
 import { useCouncilStore } from '@/lib/store/useCouncilStore';
-
-const OLLAMA_URL = 'http://localhost:11434';
+import { getOllamaUrl } from '@/lib/llm/client';
 
 export interface LoadedModel {
   name: string;
@@ -32,7 +31,7 @@ export interface ModelLoadingState {
  */
 export async function getLoadedModels(): Promise<LoadedModel[]> {
   try {
-    const response = await fetch(`${OLLAMA_URL}/api/ps`);
+    const response = await fetch(`${getOllamaUrl()}/api/ps`);
     if (!response.ok) {
       throw new Error(`Failed to get loaded models: ${response.statusText}`);
     }
@@ -67,7 +66,7 @@ export async function unloadModel(
     setModelLoading(modelName, 'unloading');
     
     // Send a request with keep_alive: 0 to unload
-    const response = await fetch(`${OLLAMA_URL}/api/generate`, {
+    const response = await fetch(`${getOllamaUrl()}/api/generate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -146,7 +145,7 @@ export async function loadModel(
     
     // Send a minimal prompt to trigger model loading
     // Using stream: true so we can detect when it starts responding
-    const response = await fetch(`${OLLAMA_URL}/api/generate`, {
+    const response = await fetch(`${getOllamaUrl()}/api/generate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-const OLLAMA_URL = process.env.OLLAMA_URL || 'http://localhost:11434';
-const LMSTUDIO_URL = process.env.LMSTUDIO_URL || 'http://localhost:1234';
+import { OLLAMA_URL, LMSTUDIO_URL } from '@/lib/config/serverUrls';
 
 interface OllamaModelDetails {
   parent_model: string;
