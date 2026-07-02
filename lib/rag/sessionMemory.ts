@@ -5,6 +5,7 @@
 
 import { generateEmbedding } from './embeddings';
 import { addDocument, searchSimilar, getAllDocuments, deleteDocument, deleteBySource, CollectionName } from './vectorStore';
+import { DEFAULT_SERVICE_URLS } from '../store/useSettingsStore';
 
 export interface ConversationSummary {
   id: string;
@@ -30,7 +31,7 @@ const PREFERENCES_COLLECTION: CollectionName = 'preferences';
  */
 export async function summarizeConversation(
   messages: Array<{ role: string; content: string }>,
-  ollamaUrl: string = 'http://localhost:11434',
+  ollamaUrl: string = DEFAULT_SERVICE_URLS.ollama,
   model: string = 'qwen3:latest'
 ): Promise<{
   summary: string;

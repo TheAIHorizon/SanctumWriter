@@ -34,6 +34,7 @@ import {
   workflowToPrompt,
   generateFilename,
 } from '@/lib/image/comfyClient';
+import { getOllamaUrl } from '@/lib/llm/client';
 
 export function ImageStudioPanel() {
   const {
@@ -106,7 +107,7 @@ export function ImageStudioPanel() {
     setStatus({ isGenerating: true, error: null });
     
     try {
-      const response = await fetch(`http://localhost:11434/api/generate`, {
+      const response = await fetch(`${getOllamaUrl()}/api/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -259,6 +260,7 @@ Enhanced prompt:`,
               filename: `${filenamePrefix}.png`,
               outputFolder: settings.outputFolder,
               workspace: workspacePath || './documents',
+              comfyuiUrl: settings.comfyuiUrl,
             }),
           });
 

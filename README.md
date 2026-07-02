@@ -4,7 +4,7 @@
 
 A local-first markdown editor that uses your own LLMs (Ollama/LM Studio) as a collaborative writing companion. Like Cursor for code, but for prose.
 
-![SanctumWriter](https://img.shields.io/badge/Status-Beta-blue) ![License](https://img.shields.io/badge/License-MIT-green) ![Local](https://img.shields.io/badge/100%25-Local-purple) ![Privacy](https://img.shields.io/badge/Privacy-First-orange)
+![SanctumWriter](https://img.shields.io/badge/Status-Beta-blue) ![License](https://img.shields.io/badge/License-Polyform%20Noncommercial%201.0.0-orange) ![Local](https://img.shields.io/badge/100%25-Local-purple) ![Privacy](https://img.shields.io/badge/Privacy-First-orange)
 
 ---
 
@@ -16,7 +16,7 @@ A local-first markdown editor that uses your own LLMs (Ollama/LM Studio) as a co
 | **Cost** | ✅ Free forever (uses your local LLMs) | ❌ Monthly subscriptions |
 | **Internet** | ✅ Works offline | ❌ Requires connection |
 | **Your Data** | ✅ Stored locally, you control it | ❌ Stored on company servers |
-| **Open Source** | ✅ MIT License | ❌ Usually closed source |
+| **Source-Available** | ✅ Free to read, modify, and use noncommercially ([Polyform Noncommercial 1.0.0](LICENSE)) | ❌ Usually closed source |
 
 ---
 
@@ -216,7 +216,7 @@ DEFAULT_PROVIDER=ollama
 DEFAULT_MODEL=llama3
 ```
 
-> 💡 **Tip**: Your documents are persisted in `./documents` folder and LanceDB data in a Docker volume.
+> 💡 **Tip**: Your documents are persisted in the `./documents` folder. RAG/session-memory data (embeddings, saved research, preferences) is stored as JSON in your **browser's localStorage**, not in a Docker volume — it lives with whichever browser/profile you use to open the app, so it won't follow you to a different browser or machine.
 
 ---
 
@@ -286,8 +286,14 @@ Set your working directory in Settings → Workspace. Works great with **Obsidia
 - **Editor**: CodeMirror 6
 - **Styling**: Tailwind CSS
 - **State**: Zustand
-- **Vector DB**: LanceDB (for RAG)
+- **Vector DB**: None — RAG uses a JSON document store in browser `localStorage` with brute-force in-memory cosine similarity (see `lib/rag/vectorStore.ts`); not a real vector database and not suited to large document sets. (`@lancedb/lancedb` is listed as a dependency but is unused — see [Known Limitations](#-known-limitations).)
 - **LLM**: Ollama / LM Studio
+
+---
+
+## ⚠️ Known Limitations
+
+- **RAG storage is browser localStorage, not a vector database.** The Knowledge Base, Session Memory, and Research collections are all stored as JSON in your browser's localStorage and searched with brute-force in-memory cosine similarity (`lib/rag/vectorStore.ts`). This is fine for a handful of documents but will not scale to a large knowledge base, is per-browser/per-profile (won't sync across browsers or machines), and is subject to your browser's localStorage quota (a few MB, typically). `@lancedb/lancedb` appears in `package.json` but isn't used anywhere in the app.
 
 ---
 
@@ -318,7 +324,7 @@ The app runs on port **3125** by default. If you need a different port, modify `
 
 ## 📄 License
 
-MIT - See [LICENSE](LICENSE) for details.
+[Polyform Noncommercial 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0) - free for personal, educational, research, and other noncommercial use; commercial use requires a separate license from the copyright holder. See [LICENSE](LICENSE) for the full text.
 
 ---
 

@@ -12,7 +12,7 @@
 
 ### Quick Context
 - **What it is**: Local-first AI writing app using Ollama/LM Studio
-- **Stack**: Next.js 14 + React + TypeScript + Tailwind + Zustand + CodeMirror 6 + LanceDB
+- **Stack**: Next.js 14 + React + TypeScript + Tailwind + Zustand + CodeMirror 6 + browser localStorage (RAG/vector storage - NOT LanceDB; see README.md's Known Limitations section)
 - **Key files**: `app/page.tsx` (main), `lib/store/` (state), `lib/llm/` (AI), `lib/rag/` (knowledge base)
 - **Port**: 3125
 

@@ -78,9 +78,18 @@ export function Editor({ onEditorReady }: EditorProps) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ content, workspace }),
         });
-        
+
         if (response.ok) {
-          useAppStore.getState().markDocumentDirty(false);
+          // Only clear the dirty flag if the document we just saved is still
+          // the current one AND its content still matches the snapshot we
+          // saved. If the user kept typing while this request was in flight,
+          // the store's content will have moved on - leave dirty=true so
+          // those newer edits aren't silently reported as "saved" (the
+          // debounced save they triggered will clear it once it lands).
+          const latest = useAppStore.getState().currentDocument;
+          if (latest?.path === path && latest.content === content) {
+            useAppStore.getState().markDocumentDirty(false);
+          }
         }
       } catch (error) {
         console.error('Auto-save failed:', error);
@@ -130,16 +139,24 @@ export function Editor({ onEditorReady }: EditorProps) {
   // Manual save handler
   const handleSave = useCallback(async () => {
     if (!currentDocument) return;
-    
+
+    const path = currentDocument.path;
+    const content = currentDocument.content;
+
     try {
-      const response = await fetch(`/api/files/${currentDocument.path}`, {
+      const response = await fetch(`/api/files/${path}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: currentDocument.content, workspace: workspacePath }),
+        body: JSON.stringify({ content, workspace: workspacePath }),
       });
-      
+
       if (response.ok) {
-        useAppStore.getState().markDocumentDirty(false);
+        // Same race as auto-save: only clear dirty if nothing changed
+        // while this request was in flight.
+        const latest = useAppStore.getState().currentDocument;
+        if (latest?.path === path && latest.content === content) {
+          useAppStore.getState().markDocumentDirty(false);
+        }
         showToast('Document saved', 'success');
       } else {
         showToast('Failed to save document', 'error');

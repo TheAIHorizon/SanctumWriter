@@ -1342,10 +1342,10 @@ function ServicesTab({
             <span className="text-text-secondary">Standard local setup</span>
             <button
               onClick={() => {
-                onSetServiceURL('ollama', 'http://localhost:11434');
-                onSetServiceURL('lmstudio', 'http://localhost:1234');
-                onSetServiceURL('perplexica', 'http://localhost:3000');
-                onSetServiceURL('searxng', 'http://localhost:4000');
+                onSetServiceURL('ollama', DEFAULT_SERVICE_URLS.ollama);
+                onSetServiceURL('lmstudio', DEFAULT_SERVICE_URLS.lmstudio);
+                onSetServiceURL('perplexica', DEFAULT_SERVICE_URLS.perplexica);
+                onSetServiceURL('searxng', DEFAULT_SERVICE_URLS.searxng);
               }}
               className="px-2 py-1 text-xs text-accent hover:bg-accent/10 rounded"
             >

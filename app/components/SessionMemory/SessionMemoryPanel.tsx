@@ -18,7 +18,7 @@ import { cn } from '@/lib/utils';
 import { useRAGStore } from '@/lib/store/useRAGStore';
 import { useAppStore } from '@/lib/store/useAppStore';
 import { useChatStore } from '@/lib/store/useChatStore';
-import { useSettingsStore } from '@/lib/store/useSettingsStore';
+import { useSettingsStore, DEFAULT_SERVICE_URLS } from '@/lib/store/useSettingsStore';
 import {
   getDocumentMemories,
   saveConversationMemory,
@@ -76,7 +76,7 @@ export function SessionMemoryPanel() {
 
     setIsSaving(true);
     try {
-      const ollamaUrl = serviceURLs?.ollama || 'http://localhost:11434';
+      const ollamaUrl = serviceURLs?.ollama || DEFAULT_SERVICE_URLS.ollama;
       
       // Summarize the conversation
       const { summary, keyPoints, decisions } = await summarizeConversation(

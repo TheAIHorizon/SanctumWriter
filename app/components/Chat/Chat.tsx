@@ -5,7 +5,7 @@ import { Send, Bot, User, Loader2, CheckCircle, XCircle, Wand2, Database, Brain,
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/lib/store/useAppStore';
 import { useChatStore } from '@/lib/store/useChatStore';
-import { useSettingsStore } from '@/lib/store/useSettingsStore';
+import { useSettingsStore, DEFAULT_SERVICE_URLS } from '@/lib/store/useSettingsStore';
 import { useWorkflowStore, STAGE_LABELS } from '@/lib/store/useWorkflowStore';
 import { useRAGStore } from '@/lib/store/useRAGStore';
 import { streamChat, estimateMessagesTokens, LLMOptions } from '@/lib/llm/client';
@@ -377,7 +377,7 @@ Use this context to inform your response when relevant. Cite sources when refere
                   await autoSaveSession(
                     currentDocument.path,
                     allMessages.map(m => ({ role: m.role, content: m.content })),
-                    serviceURLs?.ollama || 'http://localhost:11434',
+                    serviceURLs?.ollama || DEFAULT_SERVICE_URLS.ollama,
                     model,
                     ragSettings.embeddingModel,
                     sessionMemorySettings.autoSaveThreshold

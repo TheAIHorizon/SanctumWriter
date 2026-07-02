@@ -21,7 +21,11 @@ services:
     volumes:
       # Mount your documents folder for persistence
       - ./documents:/app/documents
-      # Optional: mount LanceDB data for RAG persistence
+      # NOTE: RAG/knowledge-base data is stored in the browser's localStorage
+      # (see README.md's Known Limitations), NOT in this container, so this
+      # volume is currently unused - the app never reads or writes
+      # /app/.lancedb. Left mounted for forward-compatibility if server-side
+      # vector storage is added later.
       - sanctum-lancedb:/app/.lancedb
     environment:
       - NODE_ENV=production

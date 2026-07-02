@@ -25,7 +25,10 @@ export async function detectGPU(): Promise<GPUInfo> {
   // Try WebGPU first (more accurate)
   if ('gpu' in navigator) {
     try {
-      const gpu = navigator.gpu as GPU;
+      // WebGPU types aren't part of TypeScript's built-in DOM lib (would require
+      // the separate @webgpu/types package); this is guarded feature-detection.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const gpu = (navigator as any).gpu;
       const adapter = await gpu.requestAdapter();
       if (adapter) {
         result.isWebGPU = true;

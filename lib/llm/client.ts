@@ -1,8 +1,20 @@
 import { LLMMessage, LLMProviderType, StreamCallbacks } from '@/types';
 import { documentTools, formatToolsForOllama, formatToolsForLMStudio, getAvailableTools } from './tools';
+import { useSettingsStore, DEFAULT_SERVICE_URLS } from '@/lib/store/useSettingsStore';
 
-const OLLAMA_URL = 'http://localhost:11434';
-const LMSTUDIO_URL = 'http://localhost:1234';
+// Shared client-side service URL getters. These read the user's configured
+// URLs from the settings store (Settings panel) at call time, falling back
+// to the app defaults, instead of baking in a hardcoded localhost URL.
+// Other client-side modules that talk to Ollama/LM Studio directly should
+// import these rather than declaring their own OLLAMA_URL/LMSTUDIO_URL
+// constants.
+export function getOllamaUrl(): string {
+  return useSettingsStore.getState().serviceURLs?.ollama || DEFAULT_SERVICE_URLS.ollama;
+}
+
+export function getLMStudioUrl(): string {
+  return useSettingsStore.getState().serviceURLs?.lmstudio || DEFAULT_SERVICE_URLS.lmstudio;
+}
 
 export interface LLMOptions {
   temperature?: number;
@@ -25,7 +37,7 @@ export function estimateMessagesTokens(messages: LLMMessage[]): number {
 export async function getAvailableModels(provider: LLMProviderType): Promise<Array<{ id: string; name: string }>> {
   try {
     if (provider === 'ollama') {
-      const response = await fetch(`${OLLAMA_URL}/api/tags`);
+      const response = await fetch(`${getOllamaUrl()}/api/tags`);
       if (!response.ok) throw new Error('Failed to fetch Ollama models');
       const data = await response.json();
       return (data.models || []).map((m: { name: string }) => ({
@@ -33,7 +45,7 @@ export async function getAvailableModels(provider: LLMProviderType): Promise<Arr
         name: m.name,
       }));
     } else {
-      const response = await fetch(`${LMSTUDIO_URL}/v1/models`);
+      const response = await fetch(`${getLMStudioUrl()}/v1/models`);
       if (!response.ok) throw new Error('Failed to fetch LM Studio models');
       const data = await response.json();
       return (data.data || []).map((m: { id: string }) => ({
@@ -49,7 +61,7 @@ export async function getAvailableModels(provider: LLMProviderType): Promise<Arr
 
 export async function checkProviderHealth(provider: LLMProviderType): Promise<boolean> {
   try {
-    const url = provider === 'ollama' ? `${OLLAMA_URL}/api/tags` : `${LMSTUDIO_URL}/v1/models`;
+    const url = provider === 'ollama' ? `${getOllamaUrl()}/api/tags` : `${getLMStudioUrl()}/v1/models`;
     const response = await fetch(url, { method: 'GET' });
     return response.ok;
   } catch {
@@ -167,7 +179,7 @@ async function tryOllamaRequest(
     body.tools = formatToolsForOllama(tools);
   }
 
-  return fetch(`${OLLAMA_URL}/api/chat`, {
+  return fetch(`${getOllamaUrl()}/api/chat`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
@@ -199,7 +211,7 @@ async function streamLMStudioChat(
     body.tool_choice = 'auto';
   }
 
-  let response = await fetch(`${LMSTUDIO_URL}/v1/chat/completions`, {
+  let response = await fetch(`${getLMStudioUrl()}/v1/chat/completions`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
@@ -208,7 +220,7 @@ async function streamLMStudioChat(
   // Retry without tools if error
   if (!response.ok && useTools) {
     const retryBody = { model, messages, stream: true };
-    response = await fetch(`${LMSTUDIO_URL}/v1/chat/completions`, {
+    response = await fetch(`${getLMStudioUrl()}/v1/chat/completions`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(retryBody),
@@ -299,7 +311,7 @@ export async function nonStreamingChat(
       body.tools = formatToolsForOllama(documentTools);
     }
 
-    const response = await fetch(`${OLLAMA_URL}/api/chat`, {
+    const response = await fetch(`${getOllamaUrl()}/api/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
@@ -328,7 +340,7 @@ export async function nonStreamingChat(
       body.tool_choice = 'auto';
     }
 
-    const response = await fetch(`${LMSTUDIO_URL}/v1/chat/completions`, {
+    const response = await fetch(`${getLMStudioUrl()}/v1/chat/completions`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
